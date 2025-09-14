@@ -1,4 +1,6 @@
-![CashFlow](imgs/logo.jpg){width=250}
+<picture style="display:flex; justify-content:center;">
+    <img src="./imgs/logo.png" width="200"/>
+</picture>
 
 Pipeline de dados da B3 para ingestão, processamento e análise de ações usando **AWS**.  
 Infraestrutura provisionada com **Terraform** e código de ingestão/ETL em **Python**.
