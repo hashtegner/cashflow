@@ -33,7 +33,7 @@ flowchart LR
     A[Scraping - Python] -->|Dados brutos| B[S3 - Raw Zone]
     B -->|Trigger| C[Lambda]
     C -->|Inicia job| D[Glue ETL]
-    D -->|Transformações<br>(Agregações, renomeação,<br>cálculos com datas)| E[S3 - Refined Zone]
+    D -->|Transformações| E[S3 - Refined Zone]
     E -->|Catalogação automática| F[Glue Catalog]
     F -->|Consulta SQL| G[Athena]
 ```
