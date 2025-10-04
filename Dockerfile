@@ -6,3 +6,5 @@ RUN pip install .
 
 
 COPY scripts/* ${LAMBDA_TASK_ROOT}
+
+CMD ["download.handler"]

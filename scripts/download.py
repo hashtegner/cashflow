@@ -10,9 +10,3 @@ def handler(event, context):
         "statusCode": 200,
         "body": json.dumps(data),
     }
-
-if __name__ == "__main__":
-    event = {
-        "Código": "MGLU3.SA"
-    }
-    handler(event, None)    
