@@ -7,6 +7,9 @@ on:
     branches:
       - main
 
+env:
+  PROJECT_NAME: ${{ github.repository }}
+
 jobs:
   terraform-plan:
     name: "Terraform Plan"
@@ -15,36 +18,33 @@ jobs:
       contents: read
       pull-requests: write
     steps:
-        - name: Checkout
-          uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v3
 
-        - name: Configure AWS credentials
-          uses: aws-actions/configure-aws-credentials@v4
-          with:
-            aws-region: ${{ secrets.AWS_REGION }}
-            aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-            aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ secrets.AWS_REGION }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
-        - name: Setup terraform
-          uses: hashicorp/setup-terraform@v3
-        - name: Initialize
-          run: terraform init
+      - name: Setup terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Initialize
+        run: terraform init
+        working-directory: ./infra
+
+      - name: Plan
+        run: terraform plan -out .planfile -var "project_name=${{ env.PROJECT_NAME }}"
+        working-directory: ./infra
+
+      - name: Post PR comment
+        uses: borchero/terraform-plan-comment@v2
+        with:
+          token: ${{ github.token }}
+          planfile: .planfile
           working-directory: ./infra
-        - name: Plan
-          run: terraform plan -out .planfile
-          working-directory: ./infra
-        - name: Post PR comment
-          uses: borchero/terraform-plan-comment@v2
-          with:
-            token: ${{ github.token }}
-            planfile: .planfile
-            working-directory: ./infra
-
-        - name: Store planfile
-          uses: actions/upload-artifact@v4
-          with:
-            name: .planfile
-            path: ./infra/.planfile
 
   terraform-apply:
     needs: terraform-plan
@@ -56,18 +56,51 @@ jobs:
       contents: read
       pull-requests: write
     steps:
-        - name: Checkout
-          uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v3
 
-        - name: Configure AWS credentials
-          uses: aws-actions/configure-aws-credentials@v4
-          with:
-            aws-region: ${{ secrets.AWS_REGION }}
-            aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-            aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      - name: Setup terraform
+        uses: hashicorp/setup-terraform@v3
 
-        - name: Download planfile
-          uses: actions/download-artifact@v4
-          with:
-            name: .planfile
-            path: ./infra/.planfile
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ secrets.AWS_REGION }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Initialize
+        run: terraform init
+        working-directory: ./infra
+
+      - name: Apply
+        run: terraform apply -auto-approve -var "project_name=${{ env.PROJECT_NAME }}"
+        working-directory: ./infra
+
+  deploy-lambda-images:
+    needs: terraform-apply
+    name: "Deploy Lambda Images"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ secrets.AWS_REGION }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push lambda images
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: ${{ env.PROJECT_NAME }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -t ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }} .
+          docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
