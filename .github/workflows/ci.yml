@@ -1,0 +1,73 @@
+name: "Terraform Plan"
+
+concurrency: production
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  terraform-plan:
+    name: "Terraform Plan"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+        - name: Checkout
+          uses: actions/checkout@v3
+
+        - name: Configure AWS credentials
+          uses: aws-actions/configure-aws-credentials@v4
+          with:
+            aws-region: ${{ secrets.AWS_REGION }}
+            aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+            aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+        - name: Setup terraform
+          uses: hashicorp/setup-terraform@v3
+        - name: Initialize
+          run: terraform init
+          working-directory: ./infra
+        - name: Plan
+          run: terraform plan -out .planfile
+          working-directory: ./infra
+        - name: Post PR comment
+          uses: borchero/terraform-plan-comment@v2
+          with:
+            token: ${{ github.token }}
+            planfile: .planfile
+            working-directory: ./infra
+
+        - name: Store planfile
+          uses: actions/upload-artifact@v4
+          with:
+            name: .planfile
+            path: ./infra/.planfile
+
+  terraform-apply:
+    needs: terraform-plan
+    name: "Terraform Apply"
+    runs-on: ubuntu-latest
+    environment: production
+    if: github.ref == 'refs/heads/main'
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+        - name: Checkout
+          uses: actions/checkout@v3
+
+        - name: Configure AWS credentials
+          uses: aws-actions/configure-aws-credentials@v4
+          with:
+            aws-region: ${{ secrets.AWS_REGION }}
+            aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+            aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+        - name: Download planfile
+          uses: actions/download-artifact@v4
+          with:
+            name: .planfile
+            path: ./infra/.planfile
