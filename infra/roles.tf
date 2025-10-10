@@ -15,3 +15,7 @@ resource "aws_iam_role" "lambda_role" {
   name = var.lambda_role_name
   assume_role_policy = data.aws_iam_policy_document.lambda_policy.json
 }
+
+output "lambda_role" {
+  value = aws_iam_role.lambda_role.arn
+}
