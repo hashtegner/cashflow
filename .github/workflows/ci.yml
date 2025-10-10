@@ -100,7 +100,6 @@ jobs:
         run: |
           docker build -t ${{ env.IMAGE_URI }} .
           docker push ${{ env.IMAGE_URI }}
-          echo ${{ env.IMAGE_URI }} >  >> "$GITHUB_OUTPUT"
 
 
       - name: Deploy No-Op Lambda Function
@@ -108,6 +107,6 @@ jobs:
         with:
           function-name: cashflow-nop
           package-type: Image
-          image-uri: ${{ steps.build-lambda-images.outputs.image_uri }}
+          image-uri: ${{ steps.login-ecr.outputs.registry }}/cashflow:${{ github.sha }}
           handler: nop.handler
           role: cashflow-lambda-role
