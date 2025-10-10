@@ -12,7 +12,7 @@ env:
 
 jobs:
   terraform-plan:
-    name: "Terraform Plan"
+    name: "Check terraform plan"
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -31,24 +31,40 @@ jobs:
       - name: Setup terraform
         uses: hashicorp/setup-terraform@v3
 
-      - name: Initialize
+      - name: Initialize tf-infra
         run: terraform init
-        working-directory: ./infra
+        working-directory: ./tf/infra
 
-      - name: Plan
-        run: terraform plan -out=.planfile
-        working-directory: ./infra
 
-      - name: Post PR comment
+      - name: Plan tf-infra
+        run: terraform plan -out=.infra.plan
+        working-directory: ./tf/infra
+
+      - name: Post PR comment tf-infra
         uses: borchero/terraform-plan-comment@v2
         with:
           token: ${{ github.token }}
-          planfile: .planfile
-          working-directory: ./infra
+          planfile: .infra.plan
+          working-directory: ./tf/infra
 
-  terraform-apply:
+      - name: Initialize tf-app
+        run: terraform init
+        working-directory: ./tf/app
+
+      - name: Plan tf-app
+        run: terraform plan -out=.app.plan -var "lambda_image_uri=(must be set in the apply step)"
+        working-directory: ./tf/app
+
+      - name: Post PR comment tf-app
+        uses: borchero/terraform-plan-comment@v2
+        with:
+          token: ${{ github.token }}
+          planfile: .app.plan
+          working-directory: ./tf/app
+
+  terraform-apply-infra:
     needs: terraform-plan
-    name: "Terraform Apply"
+    name: "Apply infra changes"
     runs-on: ubuntu-latest
     environment: production
     if: github.ref == 'refs/heads/main'
@@ -56,7 +72,6 @@ jobs:
       contents: read
       pull-requests: write
     outputs:
-      lambda_role_name: ${{ steps.terraform_outputs.outputs.lambda_role }}
       container_registry_url: ${{ steps.terraform_outputs.outputs.container_registry_url }}
     steps:
       - name: Checkout
@@ -74,26 +89,30 @@ jobs:
 
       - name: Initialize
         run: terraform init
-        working-directory: ./infra
+        working-directory: ./tf/infra
 
       - name: Apply
         run: terraform apply -auto-approve
-        working-directory: ./infra
+        working-directory: ./tf/infra
 
       - name: Get terraform outputs
         id: terraform_outputs
-        working-directory: ./infra
+        working-directory: ./tf/infra
         run: |
-          echo "lambda_role=$(terraform output -raw lambda_role)" >> $GITHUB_OUTPUT;
           echo "container_registry_url=$(terraform output -raw container_registry_url)" >> $GITHUB_OUTPUT;
 
-  deploy-lambda-images:
-    needs: terraform-apply
-    name: "Deploy Lambda Images"
+  terraform-apply-app:
+    needs: terraform-apply-infra
+    name: "Apply app changes"
     runs-on: ubuntu-latest
+    env:
+      IMAGE_URI: ${{ needs.terraform-apply-infra.outputs.container_registry_url }}:${{ github.sha }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+
+      - name: Setup terraform
+        uses: hashicorp/setup-terraform@v3
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -106,20 +125,17 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Build and push lambda images
+      - name: Build and push lambda image
         id: build-lambda-images
-        env:
-          IMAGE_URI: "${{ needs.terraform-apply.outputs.container_registry_url }}:${{ github.sha }}"
         run: |
           docker build -t ${{ env.IMAGE_URI }} .
           docker push ${{ env.IMAGE_URI }}
 
+      - name: Initialize
+        run: terraform init
+        working-directory: ./tf/app
 
-      - name: Deploy No-Op Lambda Function
-        uses: aws-actions/aws-lambda-deploy@v1.1.0
-        with:
-          function-name: cashflow-nop
-          package-type: Image
-          image-uri: "${{ needs.terraform-apply.outputs.container_registry_url }}:${{ github.sha }}"
-          role: "${{ needs.terraform-apply.outputs.lambda_role_name }}"
+      - name: Apply
+        run: terraform apply -auto-approve -var "lambda_image_uri=${{ env.IMAGE_URI }}"
+        working-directory: ./tf/app
 

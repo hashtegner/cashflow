@@ -8,7 +8,7 @@ terraform {
 
   backend "s3" {
     bucket = "cashflow-tf-state"
-    key    = "terraform.tfstate"
+    key    = "infra/terraform.tfstate"
     region = "us-east-1"
     use_lockfile = true
   }
