@@ -56,7 +56,7 @@ jobs:
       contents: read
       pull-requests: write
     outputs:
-      lambda_role_name: ${{ steps.terraform_outputs.outputs.lambda_role_name }}
+      lambda_role_name: ${{ steps.terraform_outputs.outputs.lambda_role }}
       container_registry_url: ${{ steps.terraform_outputs.outputs.container_registry_url }}
     steps:
       - name: Checkout
@@ -121,5 +121,5 @@ jobs:
           function-name: cashflow-nop
           package-type: Image
           image-uri: "${{ needs.terraform-apply.outputs.container_registry_url }}:${{ github.sha }}"
-          handler: nop.handler
-          role: ${{ needs.terraform-apply.outputs.lambda_role_name }}
+          role: "${{ needs.terraform-apply.outputs.lambda_role_name }}"
+
