@@ -33,7 +33,7 @@ jobs:
         working-directory: ./infra
 
       - name: Plan
-        run: terraform plan -out .planfile"
+        run: terraform plan -out=.planfile
         working-directory: ./infra
 
       - name: Post PR comment
@@ -71,7 +71,7 @@ jobs:
         working-directory: ./infra
 
       - name: Apply
-        run: terraform apply -auto-approve"
+        run: terraform apply -auto-approve
         working-directory: ./infra
 
   deploy-lambda-images:
@@ -96,7 +96,7 @@ jobs:
       - name: Build and push lambda images
         id: build-lambda-images
         env:
-          IMAGE_URI: ${{ steps.login-ecr.outputs.registry }}/cashflow:${{ env.IMAGE_TAG }}
+          IMAGE_URI: ${{ steps.login-ecr.outputs.registry }}/cashflow:${{ github.sha }}
         run: |
           docker build -t ${{ env.IMAGE_URI }} .
           docker push ${{ env.IMAGE_URI }}
