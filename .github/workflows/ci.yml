@@ -102,7 +102,7 @@ jobs:
         working-directory: ./tf/infra
         run: |
           echo "container_registry_url=$(terraform output -raw container_registry_url)" >> $GITHUB_OUTPUT;
-          echo "s3_bucket_name=$(terraform output -raw s3_bucket_name)" >> $GITHUB_OUTPUT;
+          echo "s3_data_bucket_name=$(terraform output -raw s3_bucket_name)" >> $GITHUB_OUTPUT;
 
   terraform-apply-app:
     needs: terraform-apply-infra
