@@ -1,6 +1,6 @@
 resource "aws_lambda_function" "cashflow_get_market_info" {
     function_name = "cashflow_get_market_info"
-    role = aws_iam_role.lambda_role.arn
+    role = aws_iam_role.cashflow_role.arn
 
     package_type = "Image"
     image_uri = var.lambda_image_uri
