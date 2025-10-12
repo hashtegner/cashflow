@@ -1,0 +1,53 @@
+import yfinance as yf
+import pandas as pd
+import json
+
+def download_market_info(ticker: str, period: str):
+    info = yf.Ticker(ticker).history(period=period)
+    results = []
+
+    for date, row in info.iterrows():
+        results.append({
+                "date": date.strftime("%Y-%m-%d"),
+                "ticker": ticker,
+                "open": float(row['Open']),
+                "close": float(row['Close']),
+                "high": float(row['High']),
+                "low": float(row['Low']),
+                "volume": int(row['Volume'])
+            })
+
+    return results
+
+def handler(event, _context):
+    """
+    Retrieve market info for provided company symbols and period
+    """
+    items = event.get("Item", [])
+    tickers = [item.get("Ticker") for item in items]
+    period = event.get("period", "1d")
+
+    if not tickers:
+        return {
+            "statusCode": 400,
+            "body": json.dumps({"error": "No tickers provided"})
+        }
+
+    results = []
+
+    for ticker in tickers:
+        results.extend(download_market_info(ticker, period))
+
+    return results
+
+
+if __name__ == "__main__":
+    event = {
+        "Item": [
+            {"Ticker": "AMBP3.SA"},
+            {"Ticker": "ABEV3.SA"},
+            {"Ticker": "PETR4.SA"},
+        ]
+    }
+
+    print(handler(event, {}))

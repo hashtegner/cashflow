@@ -8,6 +8,6 @@ resource "aws_lambda_function" "cashflow_get_market_info" {
     timeout = 30 # 30 seconds
 
     image_config {
-        command = ["nop.handler"]
+        command = ["get_market_info.handler"]
     }
 }
