@@ -73,6 +73,7 @@ jobs:
       pull-requests: write
     outputs:
       container_registry_url: ${{ steps.terraform_outputs.outputs.container_registry_url }}
+      s3_bucket_name: ${{ steps.terraform_outputs.outputs.s3_bucket_name }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -100,6 +101,7 @@ jobs:
         working-directory: ./tf/infra
         run: |
           echo "container_registry_url=$(terraform output -raw container_registry_url)" >> $GITHUB_OUTPUT;
+          echo "s3_bucket_name=$(terraform output -raw s3_bucket_name)" >> $GITHUB_OUTPUT;
 
   terraform-apply-app:
     needs: terraform-apply-infra
@@ -107,6 +109,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       IMAGE_URI: ${{ needs.terraform-apply-infra.outputs.container_registry_url }}:${{ github.sha }}
+      S3_BUCKET_NAME: ${{ needs.terraform-apply-infra.outputs.s3_bucket_name }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -125,17 +128,21 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
+      - name: Copy tickers to s3
+        run: |
+          aws s3 cp ./sample_data/tickers.csv s3://${{ env.S3_BUCKET_NAME }}/tickers.csv
+
       - name: Build and push lambda image
         id: build-lambda-images
         run: |
           docker build -t ${{ env.IMAGE_URI }} .
           docker push ${{ env.IMAGE_URI }}
 
-      - name: Initialize
+      - name: Initialize terraform
         run: terraform init
         working-directory: ./tf/app
 
-      - name: Apply
+      - name: Deploy apps
         run: terraform apply -auto-approve -var "lambda_image_uri=${{ env.IMAGE_URI }}"
         working-directory: ./tf/app
 
