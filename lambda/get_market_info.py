@@ -23,7 +23,7 @@ def handler(event, _context):
     """
     Retrieve market info for provided company symbols and period
     """
-    items = event.get("Item", [])
+    items = event.get("Items", [])
     tickers = [item.get("Ticker") for item in items]
     period = event.get("period", "1d")
 
@@ -43,7 +43,7 @@ def handler(event, _context):
 
 if __name__ == "__main__":
     event = {
-        "Item": [
+        "Items": [
             {"Ticker": "AMBP3.SA"},
             {"Ticker": "ABEV3.SA"},
             {"Ticker": "PETR4.SA"},
