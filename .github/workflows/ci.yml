@@ -52,7 +52,8 @@ jobs:
         working-directory: ./tf/app
 
       - name: Plan tf-app
-        run: terraform plan -out=.app.plan -var "lambda_image_uri=(must be set in the apply step)"
+        run: |
+          terraform plan -out=.app.plan -var "lambda_image_uri=(must be set in the apply step)" -var "s3_data_bucket_name=(must be set in the apply step)"
         working-directory: ./tf/app
 
       - name: Post PR comment tf-app
