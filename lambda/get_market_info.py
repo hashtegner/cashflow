@@ -1,7 +1,8 @@
 import yfinance as yf
 import json
+from datetime import datetime
 
-def download_market_info(ticker: str, period: str):
+def download_market_info(ticker: str, period: str, retrieved_at: datetime):
     info = yf.Ticker(ticker).history(period=period)
     results = []
 
@@ -13,7 +14,8 @@ def download_market_info(ticker: str, period: str):
                 "close": float(row['Close']),
                 "high": float(row['High']),
                 "low": float(row['Low']),
-                "volume": int(row['Volume'])
+                "volume": int(row['Volume']),
+                "retrieved_at": retrieved_at.isoformat()
             })
 
     return results
@@ -25,6 +27,7 @@ def handler(event, _context):
     items = event.get("Items", [])
     tickers = [item.get("Ticker") for item in items]
     period = event.get("period", "1d")
+    retrieved_at = datetime.now()
 
     if not tickers:
         return {
@@ -35,7 +38,7 @@ def handler(event, _context):
     results = []
 
     for ticker in tickers:
-        results.extend(download_market_info(ticker, period))
+        results.extend(download_market_info(ticker=ticker, period=period, retrieved_at=retrieved_at))
 
     return results
 
