@@ -5,26 +5,24 @@ from datetime import datetime
 def download_market_info(ticker_name: str, period: str, retrieved_at: datetime):
     ticker = yf.Ticker(ticker_name)
 
-    history = ticker.history(period=period)
     info = ticker.info
+    history = ticker.history(period=period)
     results = []
-
-    print(info)
 
     for date, row in history.iterrows():
         results.append({
-            "name": info["shortName"],
-            "sector": info["sector"],
-            "country": info["country"],
-            "industry": info["industry"],
-            "market": info["market"],
+            "name": info.get("shortName"),
+            "sector": info.get("sector"),
+            "country": info.get("country"),
+            "industry": info.get("industry"),
+            "market": info.get("market"),
             "date": date.strftime("%Y-%m-%d"),
             "ticker": ticker_name,
-            "open": float(row['Open']),
-            "close": float(row['Close']),
-            "high": float(row['High']),
-            "low": float(row['Low']),
-            "volume": int(row['Volume']),
+            "open": float(row.get('Open', 0)),
+            "close": float(row.get('Close', 0)),
+            "high": float(row.get('High', 0)),
+            "low": float(row.get('Low', 0)),
+            "volume": int(row.get('Volume', 0)),
             "retrieved_at": retrieved_at.isoformat()
         })
 
@@ -57,7 +55,7 @@ if __name__ == "__main__":
     event = {
         "Items": [
             {"Ticker": "AAPL"},
-            {"Ticker": "PETR4.SA"},
+            {"Ticker": "PETR4.SA"}
         ]
     }
 
