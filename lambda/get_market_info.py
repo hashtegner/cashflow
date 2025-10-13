@@ -1,5 +1,4 @@
 import yfinance as yf
-import pandas as pd
 import json
 
 def download_market_info(ticker: str, period: str):
