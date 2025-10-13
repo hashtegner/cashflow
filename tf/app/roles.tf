@@ -25,6 +25,14 @@ resource "aws_iam_role" "cashflow_role" {
         Principal = {
           Service = "s3.amazonaws.com"
         }
+      },
+
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Principal = {
+          Service = "glue.amazonaws.com"
+        }
       }
     ]
   })

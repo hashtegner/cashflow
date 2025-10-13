@@ -133,6 +133,10 @@ jobs:
         run: |
           aws s3 cp ./sample_data/tickers.csv s3://${{ env.S3_DATA_BUCKET_NAME }}/tickers.csv
 
+      - name: Copy glue script to s3
+        run: |
+          aws s3 cp --recursive ./glue/ s3://${{ env.S3_DATA_BUCKET_NAME }}/glue/
+
       - name: Build and push lambda image
         id: build-lambda-images
         run: |
