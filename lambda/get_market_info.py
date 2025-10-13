@@ -13,7 +13,7 @@ def download_market_info(ticker_name: str, period: str, retrieved_at: datetime):
 
     for date, row in history.iterrows():
         results.append({
-            "name": info["longName"],
+            "name": info["shortName"],
             "sector": info["sector"],
             "country": info["country"],
             "industry": info["industry"],

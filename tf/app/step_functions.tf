@@ -67,7 +67,7 @@ module "step_functions" {
         PersistExtractedData = {
             Type = "Task"
             Resource = "arn:aws:states:::lambda:invoke"
-            End = true
+            Next = "ProcessExtractedData"
             Arguments = {
                 FunctionName = aws_lambda_function.cashflow_persist_market_data.arn
                 Payload = {
@@ -84,6 +84,19 @@ module "step_functions" {
                     JitterStrategy = "FULL"
                 }
             ]
+        }
+
+        ProcessExtractedData = {
+            Type = "Task"
+            Resource = "arn:aws:states:::glue:startJobRun"
+            End = true
+            Arguments = {
+                JobName = aws_glue_job.cashflow_process_extracted_data.name
+                Arguments = {
+                    "--INPUT_FILE" = "{% $states.input.file %}"
+                    "--BUCKET_NAME" = var.s3_data_bucket_name
+                }
+            }
         }
     }
   })
