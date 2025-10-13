@@ -23,6 +23,6 @@ resource "aws_lambda_function" "cashflow_persist_market_data" {
 
 
     image_config {
-        command = ["persist_market_data.handler"]
+        command = ["write_market_info.handler"]
     }
 }

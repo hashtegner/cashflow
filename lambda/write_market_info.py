@@ -7,7 +7,7 @@ s3_client = boto3.client("s3")
 
 
 def save_to_s3(df: pd.DataFrame, bucket_name: str):
-    now = datetime.now().date().strftime("%Y-%m-%d %H:%M:%S")
+    now = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
     key = f"raw/crawled_data/{now}.csv"
 
     buffer = StringIO()
