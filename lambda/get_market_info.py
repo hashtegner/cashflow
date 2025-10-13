@@ -2,21 +2,31 @@ import yfinance as yf
 import json
 from datetime import datetime
 
-def download_market_info(ticker: str, period: str, retrieved_at: datetime):
-    info = yf.Ticker(ticker).history(period=period)
+def download_market_info(ticker_name: str, period: str, retrieved_at: datetime):
+    ticker = yf.Ticker(ticker_name)
+
+    history = ticker.history(period=period)
+    info = ticker.info
     results = []
 
-    for date, row in info.iterrows():
+    print(info)
+
+    for date, row in history.iterrows():
         results.append({
-                "date": date.strftime("%Y-%m-%d"),
-                "ticker": ticker,
-                "open": float(row['Open']),
-                "close": float(row['Close']),
-                "high": float(row['High']),
-                "low": float(row['Low']),
-                "volume": int(row['Volume']),
-                "retrieved_at": retrieved_at.isoformat()
-            })
+            "name": info["longName"],
+            "sector": info["sector"],
+            "country": info["country"],
+            "industry": info["industry"],
+            "market": info["market"],
+            "date": date.strftime("%Y-%m-%d"),
+            "ticker": ticker_name,
+            "open": float(row['Open']),
+            "close": float(row['Close']),
+            "high": float(row['High']),
+            "low": float(row['Low']),
+            "volume": int(row['Volume']),
+            "retrieved_at": retrieved_at.isoformat()
+        })
 
     return results
 
@@ -38,7 +48,7 @@ def handler(event, _context):
     results = []
 
     for ticker in tickers:
-        results.extend(download_market_info(ticker=ticker, period=period, retrieved_at=retrieved_at))
+        results.extend(download_market_info(ticker_name=ticker, period=period, retrieved_at=retrieved_at))
 
     return results
 
@@ -46,8 +56,7 @@ def handler(event, _context):
 if __name__ == "__main__":
     event = {
         "Items": [
-            {"Ticker": "AMBP3.SA"},
-            {"Ticker": "ABEV3.SA"},
+            {"Ticker": "AAPL"},
             {"Ticker": "PETR4.SA"},
         ]
     }
