@@ -1,7 +1,7 @@
 module "step_functions" {
   source = "terraform-aws-modules/step-functions/aws"
 
-  name = "cashflow-get-market-info"
+  name = "cashflow"
   type = "STANDARD"
 
   use_existing_role = true
