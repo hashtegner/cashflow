@@ -53,8 +53,8 @@ module "step_functions" {
                         Retry = [
                             {
                                 ErrorEquals = ["Lambda.ServiceException", "Lambda.AWSLambdaException", "Lambda.SdkClientException", "Lambda.TooManyRequestsException"]
-                                IntervalSeconds = 1
-                                MaxAttempts = 3
+                                IntervalSeconds = 3
+                                MaxAttempts = 5
                                 BackoffRate = 2
                                 JitterStrategy = "FULL"
                             }
