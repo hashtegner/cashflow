@@ -6,6 +6,7 @@ from awsglue.context import GlueContext
 from awsglue.job import Job
 from pyspark.sql.functions import sum, avg, max, min, col, lag
 from pyspark.sql.window import Window
+import boto3
 
 args = getResolvedOptions(sys.argv, ['JOB_NAME'])
 raw_data_path = "s3://cashflow-data/raw/stocks"
@@ -27,14 +28,12 @@ df = df.toDF()
 
 
 # add calculations
-df = df.groupBy("ticker", "reference_date") \
+df = df.groupBy("ticker", "reference_date", "market") \
     .agg(
         avg("close").alias("average_price"),
         max("high").alias("max_high"),
         min("low").alias("min_low")
     )
-
-df = df.withColumn("market", col("market"))
 
 # moving average 7d
 window_7d = Window.partitionBy("ticker").orderBy("reference_date").rowsBetween(-6, 0)
@@ -51,3 +50,6 @@ df = df.withColumn("price_lag_3_month", lag("average_price", 3).over(window_full
 df.write.mode("overwrite").partitionBy("reference_date", "ticker").parquet(refined_data_path)
 
 job.commit()
+
+glue_client = boto3.client('glue')
+glue_client.sql("MSCK REPAIR TABLE cashflow.stocks_refined")

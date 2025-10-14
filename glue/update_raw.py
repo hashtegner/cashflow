@@ -5,6 +5,7 @@ from pyspark.context import SparkContext
 from awsglue.context import GlueContext
 from awsglue.job import Job
 from pyspark.sql.functions import current_date, date_format, col, to_timestamp
+import boto3
 
 args = getResolvedOptions(sys.argv, ['JOB_NAME', 'INPUT_FILE'])
 
@@ -37,5 +38,7 @@ df = df.withColumnRenamed("name", "company_name") \
 
 df.write.mode("overwrite").partitionBy("process_date").parquet(raw_data_path)
 
-
 job.commit()
+
+glue_client = boto3.client('glue')
+glue_client.sql("MSCK REPAIR TABLE cashflow.stocks_raw")

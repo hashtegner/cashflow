@@ -34,7 +34,7 @@ def handler(event, _context):
     """
     items = event.get("Items", [])
     tickers = [item.get("Ticker") for item in items]
-    period = event.get("period", "1d")
+    period = event.get("period", "30d")
     retrieved_at = datetime.now()
 
     if not tickers:
