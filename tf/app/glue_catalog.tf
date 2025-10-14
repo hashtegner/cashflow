@@ -154,6 +154,11 @@ resource "aws_glue_catalog_table" "stocks_refined" {
       name = "price_lag_3_month"
       type = "double"
     }
+
+    columns {
+      name = "market"
+      type = "string"
+    }
   }
 
   partition_keys {

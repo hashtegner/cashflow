@@ -29,10 +29,12 @@ df = df.toDF()
 # add calculations
 df = df.groupBy("ticker", "reference_date") \
     .agg(
-        avg("close").alias("avg_price"),
+        avg("close").alias("average_price"),
         max("high").alias("max_high"),
         min("low").alias("min_low")
     )
+
+df = df.withColumn("market", col("market"))
 
 # moving average 7d
 window_7d = Window.partitionBy("ticker").orderBy("reference_date").rowsBetween(-6, 0)
