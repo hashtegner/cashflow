@@ -68,7 +68,7 @@ resource "aws_glue_catalog_table" "stocks_raw" {
     }
 
     columns {
-      name = "date"
+      name = "reference_date"
       type = "string"
     }
 

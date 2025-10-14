@@ -31,7 +31,8 @@ df = df.withColumn("process_date", date_format(current_date(), "yyyyMMdd").cast(
 # rename columns to proper names
 df = df.withColumnRenamed("name", "company_name") \
     .withColumnRenamed("sector", "company_sector") \
-    .withColumnRenamed("retrieved_at", "retrieve_date")
+    .withColumnRenamed("retrieved_at", "retrieve_date") \
+    .withColumnRenamed("date", "reference_date")
 
 df.write.mode("overwrite").partitionBy("process_date").parquet(raw_data_path)
 
