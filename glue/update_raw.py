@@ -4,7 +4,7 @@ from awsglue.utils import getResolvedOptions
 from pyspark.context import SparkContext
 from awsglue.context import GlueContext
 from awsglue.job import Job
-from pyspark.sql.functions import current_date, date_format, col
+from pyspark.sql.functions import current_date, date_format, col, to_timestamp
 
 args = getResolvedOptions(sys.argv, ['JOB_NAME', 'INPUT_FILE'])
 
@@ -27,8 +27,7 @@ df = spark.read \
 # add column to be used as partition key
 df = df.withColumn("process_date", date_format(current_date(), "yyyyMMdd").cast("int")) \
     .withColumn("date", date_format(col("date"), "yyyyMMdd").cast("int")) \
-    .withColumn("retrieve_at", date_format(col("retrieved_at"), "yyyyMMdd").cast("int"))
-
+    .withColumn("retrieved_at", date_format(to_timestamp(col("retrieved_at")), "yyyyMMdd").cast("int"))
 
 # rename columns to proper names
 df = df.withColumnRenamed("name", "company_name") \
