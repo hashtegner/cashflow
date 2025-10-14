@@ -88,7 +88,7 @@ module "step_functions" {
 
         UpdateRaw = {
             Type = "Task"
-            Resource = "arn:aws:states:::glue:startJobRun"
+            Resource = "arn:aws:states:::glue:startJobRun.sync"
             End = true
             Arguments = {
                 JobName = aws_glue_job.cashflow_update_raw.name
