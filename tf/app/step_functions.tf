@@ -94,7 +94,6 @@ module "step_functions" {
                 JobName = aws_glue_job.cashflow_update_raw.name
                 Arguments = {
                     "--INPUT_FILE" = "{% $states.input.Payload.file %}"
-                    "--BUCKET_NAME" = var.s3_data_bucket_name
                 }
             }
         }

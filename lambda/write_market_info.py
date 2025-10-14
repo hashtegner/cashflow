@@ -23,8 +23,11 @@ def handler(event, _context):
 
     s3_bucket_name = event.get("bucket_name", "cashflow-data")
     results = event.get("results", [])
+    flat_results = []
+    for sublist in results:
+        flat_results.extend(sublist)
 
-    df = pd.DataFrame(results)
+    df = pd.DataFrame(flat_results)
 
     return save_to_s3(df, s3_bucket_name)
 
