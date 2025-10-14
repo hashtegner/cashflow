@@ -2,7 +2,7 @@
     <img src="./imgs/logo.png" width="200"/>
 </picture>
 
-# CashFlow - Pipeline de Dados da B3
+# CashFlow - Pipeline de Dados de Ações
 
 Pipeline de dados completo para extração, processamento e análise de ações utilizando **AWS**.
 Infraestrutura provisionada com **Terraform** e código de ingestão/ETL em **Python**.
