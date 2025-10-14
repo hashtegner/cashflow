@@ -121,21 +121,6 @@ resource "aws_glue_catalog_table" "stocks_refined" {
     }
 
     columns {
-      name = "ticker"
-      type = "string"
-    }
-
-    columns {
-      name = "date"
-      type = "string"
-    }
-
-    columns {
-      name = "daily_volume"
-      type = "bigint"
-    }
-
-    columns {
       name = "average_price"
       type = "double"
     }
@@ -151,23 +136,28 @@ resource "aws_glue_catalog_table" "stocks_refined" {
     }
 
     columns {
-      name = "moving_avg_7d"
+      name = "price_avg_7d"
       type = "double"
     }
 
     columns {
-      name = "price_change"
+      name = "price_lag_1_month"
       type = "double"
     }
 
     columns {
-      name = "price_change_pct"
+      name = "price_lag_2_month"
+      type = "double"
+    }
+
+    columns {
+      name = "price_lag_3_month"
       type = "double"
     }
   }
 
   partition_keys {
-    name = "process_date"
+    name = "reference_date"
     type = "string"
   }
 

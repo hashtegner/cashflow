@@ -89,12 +89,21 @@ module "step_functions" {
         UpdateRaw = {
             Type = "Task"
             Resource = "arn:aws:states:::glue:startJobRun.sync"
-            End = true
+            Next = "UpdateRefined"
             Arguments = {
                 JobName = aws_glue_job.cashflow_update_raw.name
                 Arguments = {
                     "--INPUT_FILE" = "{% $states.input.Payload.file %}"
                 }
+            }
+        }
+
+        UpdateRefined = {
+            Type = "Task"
+            Resource = "arn:aws:states:::glue:startJobRun.sync"
+            End = true
+            Arguments = {
+                JobName = aws_glue_job.cashflow_update_refined.name
             }
         }
     }
