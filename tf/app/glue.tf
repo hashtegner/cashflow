@@ -1,6 +1,6 @@
-resource "aws_glue_job" "cashflow_process_extracted_data" {
-  name = "cashflow-process-extracted-data"
-  description = "Process extracted market data"
+resource "aws_glue_job" "cashflow_update_raw" {
+  name = "cashflow-update-raw"
+  description = "Update raw stocks data"
   role_arn = aws_iam_role.cashflow_role.arn
   glue_version = "5.0"
   worker_type = "G.1X"
@@ -8,7 +8,7 @@ resource "aws_glue_job" "cashflow_process_extracted_data" {
   execution_class = "STANDARD"
 
   command {
-    script_location = "s3://${var.s3_data_bucket_name}/glue/process_extracted_data.py"
+    script_location = "s3://${var.s3_data_bucket_name}/glue/update_raw.py"
     name = "glueetl"
     python_version = "3.9"
   }
@@ -19,7 +19,7 @@ resource "aws_glue_catalog_database" "cashflow" {
   name = "cashflow"
 }
 
-resource "aws_glue_catalog_table" "cashflow_stocks" {
+resource "aws_glue_catalog_table" "stocks_raw" {
   name = "stocks_raw"
   database_name = aws_glue_catalog_database.cashflow.name
 

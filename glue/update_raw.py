@@ -6,7 +6,6 @@ from awsglue.context import GlueContext
 from awsglue.job import Job
 from pyspark.sql.functions import current_date, date_format
 
-## @params: [JOB_NAME]
 args = getResolvedOptions(sys.argv, ['JOB_NAME', 'INPUT_FILE', "BUCKET_NAME"])
 input_path = args['INPUT_FILE']
 bucket_name = args['BUCKET_NAME']

@@ -67,7 +67,7 @@ module "step_functions" {
         PersistExtractedData = {
             Type = "Task"
             Resource = "arn:aws:states:::lambda:invoke"
-            Next = "ProcessExtractedData"
+            Next = "UpdateRaw"
             Arguments = {
                 FunctionName = aws_lambda_function.cashflow_persist_market_data.arn
                 Payload = {
@@ -86,12 +86,12 @@ module "step_functions" {
             ]
         }
 
-        ProcessExtractedData = {
+        UpdateRaw = {
             Type = "Task"
             Resource = "arn:aws:states:::glue:startJobRun"
             End = true
             Arguments = {
-                JobName = aws_glue_job.cashflow_process_extracted_data.name
+                JobName = aws_glue_job.cashflow_update_raw.name
                 Arguments = {
                     "--INPUT_FILE" = "{% $states.input.Payload.file %}"
                     "--BUCKET_NAME" = var.s3_data_bucket_name
