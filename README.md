@@ -54,21 +54,9 @@ Este projeto atende aos requisitos do Tech Challenge que exige:
 6. **Catalogação:** Tabelas criadas automaticamente no Glue Catalog
 7. **Consulta:** Dados disponíveis para análise via Athena
 
-```mermaid
-flowchart TD
-    A[EventBridge<br/>Agendamento Diário] -->|Trigger| B[Step Functions<br/>Orquestração]
-    B -->|Processa CSV| C[Lambda: get_market_info<br/>Extração yfinance]
-    C -->|Dados brutos| D[Lambda: write_market_info<br/>Persistência S3]
-    D -->|Arquivo gerado| E[Glue: update_raw<br/>Processamento inicial]
-    E -->|Dados limpos| F[Glue: update_refined<br/>Transformações avançadas]
-    F -->|Dados refinados| G[S3: Refined Zone<br/>Particionado]
-    G -->|Catalogação| H[Glue Catalog<br/>Metadados]
-    H -->|Consulta SQL| I[Athena<br/>Análise]
-
-    J[tickers.csv<br/>416 ações] -->|Input| B
-    K[Raw Zone<br/>Parquet particionado] -->|Armazenamento| D
-    L[Refined Zone<br/>Parquet particionado] -->|Armazenamento| F
-```
+<picture style="display:flex; justify-content:center;">
+    <img src="./imgs/flow.png"/>
+</picture>
 
 ---
 
