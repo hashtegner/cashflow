@@ -41,12 +41,12 @@ window_7d = Window.partitionBy("ticker").orderBy("reference_date").rowsBetween(-
 window_full = Window.partitionBy("ticker").orderBy("reference_date")
 
 # add moving average 7d
-df = df.withColumn("price_avg_7d", avg("avg_price").over(window_7d))
+df = df.withColumn("price_avg_7d", avg("average_price").over(window_7d))
 
 # add lag prices
-df = df.withColumn("price_lag_1_month", lag("avg_price", 1).over(window_full))
-df = df.withColumn("price_lag_2_month", lag("avg_price", 2).over(window_full))
-df = df.withColumn("price_lag_3_month", lag("avg_price", 3).over(window_full))
+df = df.withColumn("price_lag_1_month", lag("average_price", 1).over(window_full))
+df = df.withColumn("price_lag_2_month", lag("average_price", 2).over(window_full))
+df = df.withColumn("price_lag_3_month", lag("average_price", 3).over(window_full))
 
 df.write.mode("overwrite").partitionBy("reference_date", "ticker").parquet(refined_data_path)
 
