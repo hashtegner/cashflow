@@ -109,7 +109,7 @@ jobs:
     name: "Apply app changes"
     runs-on: ubuntu-latest
     env:
-      IMAGE_URI: ${{ needs.terraform-apply-infra.outputs.container_registry_url }}:${{ github.sha }}
+      IMAGE_URL: ${{ needs.terraform-apply-infra.outputs.container_registry_url }}:${{ github.sha }}
       S3_DATA_BUCKET_NAME: ${{ needs.terraform-apply-infra.outputs.s3_data_bucket_name }}
     steps:
       - name: Checkout
@@ -129,6 +129,22 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
+      - name: Set up buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and Push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile
+          push: true
+          tags: |
+            ${{ env.IMAGE_URL }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: 'linux/amd64'
+          provenance: false
+
       - name: Copy tickers to s3
         run: |
           aws s3 cp ./sample_data/tickers.csv s3://${{ env.S3_DATA_BUCKET_NAME }}/tickers.csv
@@ -137,18 +153,12 @@ jobs:
         run: |
           aws s3 cp --recursive ./glue/ s3://${{ env.S3_DATA_BUCKET_NAME }}/glue/
 
-      - name: Build and push lambda image
-        id: build-lambda-images
-        run: |
-          docker build -t ${{ env.IMAGE_URI }} .
-          docker push ${{ env.IMAGE_URI }}
-
       - name: Initialize terraform
         run: terraform init
         working-directory: ./tf/app
 
       - name: Deploy apps
         run: |
-          terraform apply -auto-approve -var "lambda_image_uri=${{ env.IMAGE_URI }}" -var "s3_data_bucket_name=${{ env.S3_DATA_BUCKET_NAME }}"
+          terraform apply -auto-approve -var "lambda_image_uri=${{ env.IMAGE_URL }}" -var "s3_data_bucket_name=${{ env.S3_DATA_BUCKET_NAME }}"
         working-directory: ./tf/app
 
